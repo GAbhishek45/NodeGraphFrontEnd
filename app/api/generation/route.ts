@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 // Point this to your Express Backend URL
 // Example: http://localhost:5000/api/generation/single
 // const BACKEND_URL = `${process.env.NEXT_PUBLIC_API_URL}generate/single`; 
-const BACKEND_URL = `http://localhost:8080/api/generate/single`; 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");  
 
 export async function POST(req: Request) {
   try {
