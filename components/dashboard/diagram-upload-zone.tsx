@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { Upload, CheckCircle, Loader2, Check, FileCode, ArrowRight, Zap, FileJson, Layers, Lock, X, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
+import { Router, useRouter } from 'next/router';
 
 // --- Sub-Component: Limit Reached Modal ---
 const LimitModal = ({ onClose }: { onClose: () => void }) => {
@@ -202,10 +203,11 @@ export default function DiagramUploadZone() {
 
   const handleClick = () => fileInputRef.current?.click();
 
+  const router = useRouter();
   return (
     <>
       {/* --- Render Limit Modal --- */}
-      {showLimitModal && <LimitModal onClose={() => setShowLimitModal(false)} />}
+      {showLimitModal && <LimitModal onClose={() => router.push('/billing')} />}
 
       {/* --- Rest of your UI --- */}
       {status === 'success' ? (
