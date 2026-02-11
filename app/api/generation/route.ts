@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     // 3. Construct Backend URL
     // Ensure we hit the specific endpoint: /generation/single
     const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, ""); 
-    const targetUrl = `${baseUrl}/generation/single`; 
+    const targetUrl = `${baseUrl}/generate/single`; 
 
     console.log(`🚀 Proxying to: ${targetUrl}`);
 
