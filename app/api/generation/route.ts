@@ -2,59 +2,75 @@ import { NextResponse } from "next/server";
 import axios from "axios";
 import { cookies } from "next/headers";
 
-// Point this to your Express Backend URL
-// Example: http://localhost:5000/api/generation/single
-// const BACKEND_URL = `${process.env.NEXT_PUBLIC_API_URL}generate/single`; 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");  
-
 export async function POST(req: Request) {
   try {
-    // 1. GET COOKIE FROM NEXT.JS REQUEST
+    // 1. Get Token
     const cookieStore = await cookies();
-    const jwtToken = cookieStore.get("jwt"); // Look for the 'jwt' cookie
+    const jwtToken = cookieStore.get("jwt") || cookieStore.get("token"); // Check both names
 
-    console.log("Cookies",cookieStore)
     if (!jwtToken) {
-      return NextResponse.json({ error: "Unauthorized: No cookie found" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Parse File
+    // 2. Parse Incoming File
     const formData = await req.formData();
-    const imageFile = formData.get("image");
+    const imageFile = formData.get("image") as File;
 
     if (!imageFile) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
+    // 3. Construct Backend URL
+    // Ensure we hit the specific endpoint: /generation/single
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, ""); 
+    const targetUrl = `${baseUrl}/generation/single`; 
+
+    console.log(`🚀 Proxying to: ${targetUrl}`);
+
+    // 4. Prepare FormData for Axios
     const backendFormData = new FormData();
-    backendFormData.append("image", imageFile);
+    // ⚠️ IMPORTANT: Pass the filename as the 3rd argument, or Multer might ignore it
+    backendFormData.append("image", imageFile, imageFile.name);
 
-    console.log("🚀 Forwarding request with Cookie...");
-
-    // 3. Call Express Backend AND ATTACH THE COOKIE
-    const response = await axios.post(BACKEND_URL, backendFormData, {
+    // 5. Call Express Backend
+    const response = await axios.post(targetUrl, backendFormData, {
       headers: {
-        "Content-Type": "multipart/form-data", 
-        // ✅ MANUALLY SET THE COOKIE HEADER
+        // ⚠️ CRITICAL FIX: Do NOT set 'Content-Type': 'multipart/form-data' manually!
+        // Axios/FormData will automatically generate the correct boundary header.
+        // We ONLY set the Cookie.
         "Cookie": `jwt=${jwtToken.value}`, 
       },
-      responseType: "arraybuffer", 
-      validateStatus: (status) => status < 500, 
+      responseType: "arraybuffer", // We need binary data for the ZIP
+      validateStatus: (status) => status < 500, // Handle 400s manually
     });
 
-    // ... (Rest of your error handling and success code is the same)
-    
-    // 4. Success
+    // 6. Handle Backend Errors (e.g., "Insufficient Credits")
+    if (response.status !== 200) {
+      // Convert the binary error back to JSON to show the user
+      const errorText = Buffer.from(response.data).toString('utf-8');
+      let errorJson;
+      try {
+         errorJson = JSON.parse(errorText);
+      } catch (e) {
+         errorJson = { error: errorText || "Unknown backend error" };
+      }
+      return NextResponse.json(errorJson, { status: response.status });
+    }
+
+    // 7. Success - Return the ZIP
     return new Response(response.data, {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": 'attachment; filename="NodeGraph-Project.zip"',
+        "Content-Disposition": `attachment; filename="NodeGraph-${Date.now()}.zip"`,
       },
     });
 
   } catch (error: any) {
     console.error("❌ Proxy Error:", error.message);
-    return NextResponse.json({ error: "Generation failed" }, { status: 500 });
+    return NextResponse.json(
+        { error: error.message || "Proxy generation failed" }, 
+        { status: 500 }
+    );
   }
 }
