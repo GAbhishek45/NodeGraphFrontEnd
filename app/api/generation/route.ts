@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, ""); 
   console.log("Hello arrived 4",baseUrl)
 
-    const targetUrl = `${baseUrl}/generate/single`; 
+    const targetUrl = `${baseUrl}/api/generate/single`; 
 
     console.log(`🚀 Proxying to: ${targetUrl}`);
 
