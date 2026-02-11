@@ -3,6 +3,7 @@ import axios from "axios";
 import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
+  console.log("Hello arrived 1")
   try {
     // 1. Get Token
     const cookieStore = await cookies();
@@ -11,6 +12,8 @@ export async function POST(req: Request) {
     if (!jwtToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+  console.log("Hello arrived 2")
 
     // 2. Parse Incoming File
     const formData = await req.formData();
@@ -22,7 +25,12 @@ export async function POST(req: Request) {
 
     // 3. Construct Backend URL
     // Ensure we hit the specific endpoint: /generation/single
+    // const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, ""); 
+  console.log("Hello arrived 3")
+
     const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, ""); 
+  console.log("Hello arrived 4",baseUrl)
+
     const targetUrl = `${baseUrl}/generate/single`; 
 
     console.log(`🚀 Proxying to: ${targetUrl}`);
