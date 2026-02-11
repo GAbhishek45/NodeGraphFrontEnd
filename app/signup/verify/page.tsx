@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { useAuth } from '@/contexts/auth-context';
 
 function VerifyContent() {
   const router = useRouter();
@@ -25,6 +26,7 @@ function VerifyContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [visualState, setVisualState] = useState<'idle' | 'scanning' | 'authorized'>('idle');
+  const {user,setUser} = useAuth();
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,13 +37,15 @@ function VerifyContent() {
     try {
       // Replace with your actual API endpoint
       const res = await axios.post('/api/auth/verify-otp', { email, otp });
-      
+      setUser(res.data);
+      localStorage.setItem('user', JSON.stringify(res.data));
       if (res.status === 200) {
+
         setVisualState('authorized');
         toast.success("Identity Confirmed");
         setTimeout(() => {
           router.push('/dashboard');
-        }, 1500);
+        }, 500);
       }
     } catch (err: any) {
       setError(err.response?.data?.error || "Invalid verification code");

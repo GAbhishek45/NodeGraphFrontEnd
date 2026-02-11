@@ -35,9 +35,9 @@ export default function LandingPage() {
 
   useEffect(() => {
     setMounted(true);
-    if (user && !isLoading) {
-      router.push('/dashboard');
-    }
+    // if (user && !isLoading) {
+    //   router.push('/dashboard');
+    // }
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);

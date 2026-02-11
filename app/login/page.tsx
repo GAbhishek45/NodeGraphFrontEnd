@@ -30,7 +30,8 @@ const SYSTEM_MESSAGES = [
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login,user } = useAuth();
+  
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,6 +41,9 @@ export default function LoginPage() {
   const [systemMessage, setSystemMessage] = useState('');
 
   useEffect(() => {
+    if (user && !isLoading) {
+      router.push('/dashboard');
+    }
     setSystemMessage(SYSTEM_MESSAGES[Math.floor(Math.random() * SYSTEM_MESSAGES.length)]);
   }, []);
 

@@ -7,6 +7,7 @@ import {
   Clock,
   Settings,
   LogOut,
+  Waypoints,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -52,14 +53,24 @@ export function Sidebar() {
     <aside className="w-64 h-screen fixed left-0 top-0 p-4 z-50">
       <div className="h-full w-full bg-white/20 NodeGraph-blur-2xl border border-white/30 rounded-3xl flex flex-col p-6 shadow-2xl">
         {/* Logo */}
-        <div className="flex items-center gap-2 mb-10">
-          <div className="p-2 bg-gradient-to-tr from-violet-500 to-blue-500 rounded-lg shadow-lg">
-            <Database className="text-white" size={24} />
+        <Link href="/dashboard" className="flex items-center gap-3 group">
+          {/* Logo Icon */}
+          <div className="relative w-10 h-10 flex items-center justify-center bg-slate-900 dark:bg-white rounded-xl shadow-lg shadow-violet-500/20 group-hover:shadow-violet-600/40 transition-all duration-300 group-hover:-rotate-3">
+            <div className="absolute inset-0 bg-gradient-to-tr from-violet-600 to-indigo-600 opacity-20 rounded-xl"></div>
+            {/* Swapped colors for contrast: White icon on dark bg (light mode), Dark icon on white bg (dark mode) */}
+            <Waypoints className="w-6 h-6 text-violet-400 dark:text-violet-600 transition-colors duration-300" />
           </div>
-          <h1 className="text-xl font-bold text-slate-800 tracking-tight">
-            NodeGraph
-          </h1>
-        </div>
+
+          {/* Logo Text */}
+          <div className="flex flex-col">
+            <span className="font-extrabold text-lg text-slate-900 dark:text-white tracking-tight leading-none group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+              Node<span className="text-violet-600 dark:text-violet-400">Graph</span>
+            </span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
+              Beta v1.0
+            </span>
+          </div>
+        </Link>
 
         {/* Nav */}
         <nav className="flex-1 space-y-2">

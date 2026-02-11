@@ -100,7 +100,7 @@ export default function SignupPage() {
       // 2. Transition to verification instead of direct dashboard access
       setTimeout(() => {
         router.push(`/signup/verify?email=${encodeURIComponent(formData.email)}`);
-      }, 2000);
+      }, 500);
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
