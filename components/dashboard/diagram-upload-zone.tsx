@@ -152,7 +152,7 @@ export default function DiagramUploadZone() {
       formData.append('image', file); 
 
       // 3. Call the API
-      const response = await axios.post('/api/generation', formData, {
+      const response = await axios.post('api/generation', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
