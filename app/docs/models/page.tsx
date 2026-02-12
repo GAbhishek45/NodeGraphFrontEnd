@@ -9,23 +9,25 @@ export default function ModelsPage() {
       
       {/* --- Header --- */}
       <div>
-        <span className="text-emerald-600 font-bold tracking-wider text-xs uppercase bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+        <span className="text-emerald-600 dark:text-emerald-400 font-bold tracking-wider text-xs uppercase bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1 rounded-full border border-emerald-100 dark:border-emerald-800">
           Core Concepts
         </span>
-        <h1 className="text-4xl font-extrabold text-slate-900 mt-4 mb-4">Database Models</h1>
-        <p className="text-lg text-slate-600 leading-relaxed">
-          NodeGraph intelligently translates your visual entities into robust <strong className="text-slate-800">Mongoose Schemas</strong>, preserving types, constraints, and defaults.
+        <h1 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 mt-4 mb-4">
+          Database Models
+        </h1>
+        <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+          NodeGraph intelligently translates your visual entities into robust <strong className="text-slate-800 dark:text-slate-200">Mongoose Schemas</strong>, preserving types, constraints, and defaults.
         </p>
       </div>
 
       {/* --- Interactive Visualizer: Diagram vs Code --- */}
       <section className="not-prose">
-        <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-          <Database className="w-5 h-5 text-violet-600" />
+        <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <Database className="w-5 h-5 text-violet-600 dark:text-violet-400" />
           Conversion Logic
         </h3>
         
-        <div className="bg-slate-900 rounded-2xl p-1 shadow-2xl overflow-hidden border border-slate-800">
+        <div className="bg-slate-900 rounded-2xl p-1 shadow-2xl overflow-hidden border border-slate-800 dark:border-slate-700">
           {/* Toolbar */}
           <div className="bg-[#1e1e1e] px-4 py-2 flex items-center justify-between border-b border-white/5">
             <div className="flex gap-1.5">
@@ -43,12 +45,12 @@ export default function ModelsPage() {
               <div className="absolute top-4 left-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Input: Diagram</div>
               
               {/* The Entity Card */}
-              <div className="w-64 bg-white rounded-lg shadow-xl overflow-hidden transform transition-transform hover:scale-105 duration-300">
+              <div className="w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden transform transition-transform hover:scale-105 duration-300 border border-transparent dark:border-slate-700">
                 <div className="bg-violet-600 px-4 py-2 flex justify-between items-center">
                   <span className="text-white font-bold text-sm">User</span>
                   <Code2 className="w-4 h-4 text-white/70" />
                 </div>
-                <div className="p-4 space-y-3 bg-white">
+                <div className="p-4 space-y-3 bg-white dark:bg-slate-800">
                   <EntityRow name="id" type="PK" />
                   <EntityRow name="email" type="String" />
                   <EntityRow name="role" type="Enum" />
@@ -62,6 +64,7 @@ export default function ModelsPage() {
             </div>
 
             {/* Right: Output (Code) */}
+            {/* Note: The code editor is explicitly dark themed in design, so we keep colors fixed for syntax highlighting */}
             <div className="p-6 overflow-x-auto">
               <div className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-4">Output: Mongoose Schema</div>
               <pre className="font-mono text-sm leading-relaxed">
@@ -82,17 +85,17 @@ export default function ModelsPage() {
       {/* --- Feature Grid --- */}
       <section className="grid md:grid-cols-3 gap-4 not-prose">
         <FeatureCard 
-          icon={<Clock className="w-5 h-5 text-blue-600" />}
+          icon={<Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
           title="Auto Timestamps"
           desc="createdAt and updatedAt fields are added automatically to every model."
         />
         <FeatureCard 
-          icon={<ShieldCheck className="w-5 h-5 text-emerald-600" />}
+          icon={<ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
           title="Validations"
           desc="Fields like 'email' get unique indexes and regex validation by default."
         />
         <FeatureCard 
-          icon={<ListFilter className="w-5 h-5 text-violet-600" />}
+          icon={<ListFilter className="w-5 h-5 text-violet-600 dark:text-violet-400" />}
           title="Smart Enums"
           desc="We detect common status fields (e.g., 'role', 'status') and create enums."
         />
@@ -100,17 +103,17 @@ export default function ModelsPage() {
 
       {/* --- Type Mapping Table --- */}
       <section>
-        <h2 className="text-2xl font-bold text-slate-900 mb-6">Type Detection Logic</h2>
-        <div className="not-prose overflow-hidden rounded-xl border border-slate-200 shadow-sm bg-white">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Type Detection Logic</h2>
+        <div className="not-prose overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/50">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-900 font-semibold border-b border-slate-200">
+            <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-200 font-semibold border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="px-6 py-4 w-1/3">Field Name (Input)</th>
                 <th className="px-6 py-4 w-1/3">Inferred Type</th>
                 <th className="px-6 py-4">Applied Constraints</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               <TableRow input="email" type="String" constraint="unique: true, lowercase: true" />
               <TableRow input="password" type="String" constraint="select: false (hidden by default)" />
               <TableRow input="age, count, qty" type="Number" constraint="min: 0" />
@@ -129,9 +132,9 @@ export default function ModelsPage() {
 
 function EntityRow({ name, type }: { name: string, type: string }) {
   return (
-    <div className="flex justify-between items-center text-xs border-b border-slate-100 last:border-0 pb-2 last:pb-0">
-      <span className="font-mono text-slate-700 font-bold">{name}</span>
-      <span className="text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{type}</span>
+    <div className="flex justify-between items-center text-xs border-b border-slate-100 dark:border-slate-700 last:border-0 pb-2 last:pb-0">
+      <span className="font-mono text-slate-700 dark:text-slate-300 font-bold">{name}</span>
+      <span className="text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded">{type}</span>
     </div>
   );
 }
@@ -146,23 +149,23 @@ function CodeLine({ indent, label, val }: { indent: number, label: string, val: 
 
 function FeatureCard({ icon, title, desc }: any) {
   return (
-    <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-sm hover:border-violet-300 transition-colors">
+    <div className="p-4 rounded-xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-violet-300 dark:hover:border-violet-500/50 transition-colors">
       <div className="flex items-center gap-2 mb-2">
-        <div className="p-1.5 bg-slate-50 rounded-lg">{icon}</div>
-        <h4 className="font-bold text-slate-900 text-sm">{title}</h4>
+        <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg">{icon}</div>
+        <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{title}</h4>
       </div>
-      <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{desc}</p>
     </div>
   );
 }
 
 function TableRow({ input, type, constraint }: any) {
   return (
-    <tr className="hover:bg-slate-50/50 transition-colors">
-      <td className="px-6 py-4 font-mono text-violet-700 font-medium">{input}</td>
-      <td className="px-6 py-4 font-bold text-slate-700">{type}</td>
-      <td className="px-6 py-4 text-xs font-mono text-slate-500">
-        <span className="bg-slate-100 px-2 py-1 rounded border border-slate-200">{constraint}</span>
+    <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+      <td className="px-6 py-4 font-mono text-violet-700 dark:text-violet-400 font-medium">{input}</td>
+      <td className="px-6 py-4 font-bold text-slate-700 dark:text-slate-300">{type}</td>
+      <td className="px-6 py-4 text-xs font-mono text-slate-500 dark:text-slate-400">
+        <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">{constraint}</span>
       </td>
     </tr>
   );
