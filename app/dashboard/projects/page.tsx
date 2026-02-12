@@ -205,7 +205,7 @@ function ProjectCard({ project }: { project: Project }) {
   const handleCardClick = () => {
     if (!isMenuOpen) {
        // Use _id for routing
-       router.push(`/dashboard/projects/${project._id}`);
+       //router.push(`/dashboard/projects/${project._id}`);
     }
   };
 
