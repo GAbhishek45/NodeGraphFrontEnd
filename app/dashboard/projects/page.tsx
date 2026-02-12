@@ -15,11 +15,14 @@ import {
   GitBranch,
   Sparkles,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Database, // <--- Added this
+  Code2
 } from 'lucide-react';
 
 // --- Utility: Time Ago Formatter ---
 const formatTimeAgo = (dateString: string) => {
+  if (!dateString) return "Just now";
   const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -40,18 +43,24 @@ const formatTimeAgo = (dateString: string) => {
 // --- Types ---
 interface Project {
   _id: string;
-  name?: string; // Fallback if your DB field is different
-  title?: string; // Fallback
+  name?: string; 
+  title?: string;
   status: 'completed' | 'failed' | 'pending' | 'processing'; 
   createdAt: string;
   branch?: string;
+  // 👇 New Fields
+  img_url?: string; 
+  ai_response?: {
+    models: Array<{
+      name: string;
+      fields: any[];
+    }>;
+  };
 }
 
 export default function ProjectsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // --- Dynamic State ---
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -60,6 +69,7 @@ export default function ProjectsPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
+        // Ensure this matches your actual API route
         const res = await axios.get('/api/generation/history');
         setProjects(res.data);
       } catch (err: any) {
@@ -124,7 +134,7 @@ export default function ProjectsPage() {
           {/* === Generator Card (Always Visible) === */}
           <button 
             onClick={handleNewProject}
-            className="group relative flex flex-col items-center justify-center p-8 rounded-3xl border border-dashed border-violet-500/30 bg-gradient-to-br from-violet-500/5 to-blue-500/5 hover:from-violet-500/10 hover:to-blue-500/10 hover:border-violet-500/60 transition-all duration-300 h-full min-h-[200px] overflow-hidden"
+            className="group relative flex flex-col items-center justify-center p-8 rounded-3xl border border-dashed border-violet-500/30 bg-gradient-to-br from-violet-500/5 to-blue-500/5 hover:from-violet-500/10 hover:to-blue-500/10 hover:border-violet-500/60 transition-all duration-300 h-full min-h-[220px] overflow-hidden"
           >
             <div className="absolute inset-0 bg-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity blur-xl" />
             <div className="relative z-10 flex flex-col items-center">
@@ -133,7 +143,7 @@ export default function ProjectsPage() {
               </div>
               <h3 className="text-xl font-bold text-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Generate Backend</h3>
               <p className="text-sm text-muted-foreground text-center mt-2 max-w-[200px] group-hover:text-foreground/80 transition-colors">
-                 Upload a diagram to build a new backend instantly.
+                  Upload a diagram to build a new backend instantly.
               </p>
             </div>
           </button>
@@ -162,21 +172,7 @@ export default function ProjectsPage() {
           {!loading && !error && filteredProjects.map((project) => (
             <ProjectCard key={project._id} project={project} />
           ))}
-
-          {/* === Empty State (No Search Results) === */}
-          {!loading && !error && filteredProjects.length === 0 && projects.length > 0 && (
-            <div className="col-span-full py-12 text-center">
-              <p className="text-muted-foreground">No projects found for "{searchQuery}"</p>
-            </div>
-          )}
           
-          {/* === Empty State (No Projects at all) === */}
-          {!loading && !error && projects.length === 0 && (
-             <div className="col-span-full py-8 text-center text-muted-foreground text-sm">
-                You haven't generated any projects yet. Click the card above to start!
-             </div>
-          )}
-
         </div>
       </div>
     </div>
@@ -189,12 +185,14 @@ function ProjectCard({ project }: { project: Project }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
 
-  // Normalize data fields based on DB Schema
   const displayName = project.name || project.title || "Untitled Project";
   const displayTime = formatTimeAgo(project.createdAt);
   const displayBranch = project.branch || "main";
 
-  console.log("project",project)
+  // Extract Models safely
+  const models = project.ai_response?.models || [];
+  const displayModels = models.slice(0, 3); // Show max 3 tags
+  const remainingModels = models.length - 3;
 
   const toggleMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -202,29 +200,43 @@ function ProjectCard({ project }: { project: Project }) {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleCardClick = () => {
-    if (!isMenuOpen) {
-       // Use _id for routing
-       //router.push(`/dashboard/projects/${project._id}`);
-    }
-  };
-
   return (
     <div 
-      onClick={handleCardClick}
-      className="group relative p-6 rounded-3xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card hover:shadow-xl hover:shadow-violet-500/5 dark:hover:shadow-black/50 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full min-h-[200px] cursor-pointer"
+      onClick={() => { if (!isMenuOpen) router.push(`/dashboard/projects/${project._id}`) }}
+      className="group relative rounded-3xl border border-border bg-card/50 backdrop-blur-md overflow-hidden hover:shadow-2xl hover:shadow-violet-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full min-h-[220px] cursor-pointer"
     >
       
-      {/* Top Row: Icon + Title + Menu */}
-      <div className="flex items-start justify-between">
-         <div className="flex items-start gap-4">
-            {/* Icon Box */}
-            <div className="p-3.5 rounded-2xl bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-300 border border-violet-100 dark:border-violet-800/50 group-hover:scale-105 transition-transform">
-              <FolderGit2 className="w-6 h-6" />
+      {/* --- 🎨 VISUAL LAYER: Background Image (The Diagram) --- */}
+      {project.img_url && (
+        <div className="absolute inset-0 z-0">
+            {/* The Image */}
+            <img 
+                src={project.img_url} 
+                alt="Diagram Preview" 
+                className="w-full h-full object-cover opacity-[0.08] dark:opacity-[0.15] grayscale group-hover:opacity-20 group-hover:grayscale-0 transition-all duration-700 transform group-hover:scale-105"
+            />
+            {/* Gradient Overlay to ensure text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
+        </div>
+      )}
+
+      {/* --- CONTENT LAYER (z-10 puts it above the image) --- */}
+      <div className="relative z-10 p-6 flex flex-col h-full">
+        
+        {/* Top Row */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start gap-4 overflow-hidden">
+            {/* Icon: Show Folder if no image, or a small preview icon if image exists */}
+            <div className={`p-3 rounded-2xl border transition-colors shrink-0 ${
+                project.img_url 
+                ? 'bg-white/10 border-white/20 text-foreground backdrop-blur-md' 
+                : 'bg-violet-50 dark:bg-violet-900/20 text-violet-600 border-violet-100 dark:border-violet-800/50'
+            }`}>
+              {project.img_url ? <Code2 className="w-5 h-5" /> : <FolderGit2 className="w-5 h-5" />}
             </div>
 
             <div className="min-w-0">
-              <h3 className="text-lg font-bold text-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors truncate pr-2">
+              <h3 className="text-lg font-bold text-foreground group-hover:text-violet-500 transition-colors truncate pr-2">
                 {displayName}
               </h3>
               <p className="text-sm text-muted-foreground mt-1 font-medium flex items-center gap-1.5">
@@ -232,79 +244,79 @@ function ProjectCard({ project }: { project: Project }) {
                  {displayTime}
               </p>
             </div>
-         </div>
+          </div>
 
-         {/* 3 Dots Menu */}
-         <div className="relative">
+          {/* Menu Button */}
+          <div className="relative shrink-0">
             <button 
               onClick={toggleMenu}
-              className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors relative z-20"
+              className="p-2 rounded-xl hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
             >
               <MoreVertical className="w-5 h-5" />
             </button>
+            {isMenuOpen && <ProjectMenu onClose={() => setIsMenuOpen(false)} />}
+          </div>
+        </div>
 
-            {isMenuOpen && (
-              <>
-                <div 
-                  className="fixed inset-0 z-30" 
-                  onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); }} 
-                />
-                <div className="absolute right-0 top-full mt-2 w-40 rounded-xl bg-popover border border-border shadow-xl z-40 animate-in fade-in zoom-in-95 duration-200 p-1">
-                  <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors">
-                    <Edit2 className="w-3.5 h-3.5" /> Edit
-                  </button>
-                  <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors">
-                    <Rocket className="w-3.5 h-3.5" /> Deploy
-                  </button>
-                  <div className="h-px bg-border my-1" />
-                  <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors">
-                    <Trash2 className="w-3.5 h-3.5" /> Delete
-                  </button>
-                </div>
-              </>
-            )}
-         </div>
-      </div>
+        {/* Middle Row: AI Detected Models Pills */}
+        <div className="mb-6">
+            <div className="flex flex-wrap gap-2">
+                {models.length > 0 ? (
+                    <>
+                        {displayModels.map((model, i) => (
+                            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/20">
+                                <Database className="w-3 h-3 opacity-50" />
+                                {model.name}
+                            </span>
+                        ))}
+                        {remainingModels > 0 && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-medium bg-muted text-muted-foreground border border-border">
+                                +{remainingModels} more
+                            </span>
+                        )}
+                    </>
+                ) : (
+                    <span className="text-xs text-muted-foreground italic flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> No models detected
+                    </span>
+                )}
+            </div>
+        </div>
 
-      {/* Bottom Row: Branch & Status */}
-      <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
-         <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded-md">
-            <GitBranch className="w-3 h-3" />
-            {displayBranch}
-         </div>
-         <StatusBadge status={project.status} />
+        {/* Bottom Row: Branch & Status */}
+        <div className="mt-auto pt-4 border-t border-border/50 flex items-center justify-between">
+           <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded-md">
+              <GitBranch className="w-3 h-3" />
+              {displayBranch}
+           </div>
+           <StatusBadge status={project.status} />
+        </div>
+
       </div>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
-  // Safe normalization of status string to lowercase
   const safeStatus = status?.toLowerCase() || 'pending';
 
   const styles: any = {
     completed: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-    deployed: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20", // Alias for completed
+    success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
     
     pending: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-    development: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20", // Alias
     
     processing: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-    building: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20", // Alias
     
     failed: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
-    error: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20", // Alias
   };
 
   const labels: any = {
     completed: "Live",
-    deployed: "Live",
+    success: "Ready",
     pending: "Pending",
-    development: "Dev",
     processing: "Building",
-    building: "Building",
     failed: "Error",
-    error: "Error",
   };
 
   const activeStyle = styles[safeStatus] || styles['pending'];
@@ -316,3 +328,21 @@ function StatusBadge({ status }: { status: string }) {
     </span>
   );
 }
+
+const ProjectMenu = ({ onClose }: { onClose: () => void }) => (
+    <>
+      <div className="fixed inset-0 z-30" onClick={(e) => { e.stopPropagation(); onClose(); }} />
+      <div className="absolute right-0 top-full mt-2 w-40 rounded-xl bg-popover border border-border shadow-xl z-40 animate-in fade-in zoom-in-95 duration-200 p-1">
+        <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors">
+          <Edit2 className="w-3.5 h-3.5" /> Edit
+        </button>
+        <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors">
+          <Rocket className="w-3.5 h-3.5" /> Deploy
+        </button>
+        <div className="h-px bg-border my-1" />
+        <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors">
+          <Trash2 className="w-3.5 h-3.5" /> Delete
+        </button>
+      </div>
+    </>
+);
