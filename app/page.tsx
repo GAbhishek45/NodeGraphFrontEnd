@@ -142,7 +142,7 @@ export default function LandingPage() {
               <Button variant="ghost" onClick={() => router.push('/login')} className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-semibold">
                 Sign In
               </Button>
-              <Button onClick={handleStartGenerating} className="bg-slate-900 dark:bg-violet-600 hover:bg-slate-800 dark:hover:bg-violet-700 text-white font-bold shadow-lg shadow-slate-900/20 hover:shadow-slate-900/30 transition-all transform hover:-translate-y-0.5">
+              <Button onClick={handleStartGenerating} className="bg-slate-900 dark:bg-violet-600 hover:bg-slate-800 dark:hover:bg-violet-700 from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 shadow-xl shadow-violet-500/20 hover:scale-105 text-white font-bold shadow-lg shadow-slate-900/20 hover:shadow-slate-900/30 transition-all transform hover:-translate-y-0.5">
                 Get Started
               </Button>
             </div>
