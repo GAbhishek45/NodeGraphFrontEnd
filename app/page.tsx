@@ -466,7 +466,7 @@ export default function LandingPage() {
             </div>
             
             <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-sm text-slate-500">© 2024 NodeGraph Inc. All rights reserved.</p>
+              <p className="text-sm text-slate-500">© 2026 NodeGraph - Abhishek Gohel Inc. All rights reserved.</p>
               <div className="flex items-center gap-2 text-sm text-slate-500">
                 <span className="w-2 h-2 rounded-full bg-green-500"></span>
                 System Operational
