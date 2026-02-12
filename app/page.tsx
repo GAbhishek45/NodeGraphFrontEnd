@@ -232,6 +232,7 @@ export default function LandingPage() {
               <Zap className="ml-2 w-5 h-5 fill-current" />
             </Button>
             <Button
+              onClick={()=>router.push('/docs/models')}
               variant="outline"
               className="h-14 px-8 text-lg rounded-full border-2 border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 hover:border-violet-200 text-slate-700 dark:text-slate-200 transition-all duration-300"
             >
