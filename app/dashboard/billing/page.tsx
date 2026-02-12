@@ -66,7 +66,7 @@ export default function BillingPage() {
           </div>
 
           <div className="space-y-4 mb-8 flex-1">
-            <FeatureItem text="3 Generations / day" />
+            <FeatureItem text="3 Generations " />
             <FeatureItem text="Standard Node.js Export" />
             <FeatureItem text="7-day History Retention" />
             <FeatureItem text="Community Support" />
