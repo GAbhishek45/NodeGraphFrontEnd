@@ -73,7 +73,7 @@ export default function ProjectsPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/api/generate/history`);
+        const res = await axios.get(`${baseUrl}/api/generate/history`,{withCredentials: true});
         setProjects(res.data);
       } catch (err: any) {
         console.error("Failed to fetch history:", err);
@@ -218,7 +218,7 @@ function ProjectCard({ project }: { project: Project }) {
       const res = await axios.post(
         targetUrl,
         { architecture: project.ai_response }, 
-        { responseType: 'blob' } // IMPORTANT: Handle response as a file stream
+        { responseType: 'blob',withCredentials: true } // IMPORTANT: Handle response as a file stream
       );
 
       // Create a blob URL and force download
