@@ -73,7 +73,7 @@ export default function ProjectsPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/api/generation/history`);
+        const res = await axios.get(`${baseUrl}/api/generate/history`);
         setProjects(res.data);
       } catch (err: any) {
         console.error("Failed to fetch history:", err);
