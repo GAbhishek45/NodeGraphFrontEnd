@@ -37,6 +37,7 @@ function VerifyContent() {
     try {
       // Replace with your actual API endpoint
       const res = await axios.post('/api/auth/verify-otp', { email, otp });
+      console.log("Response from verify OTP",res);
       setUser(res.data);
       localStorage.setItem('user', JSON.stringify(res.data));
       if (res.status === 200) {
