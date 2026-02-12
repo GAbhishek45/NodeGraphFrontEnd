@@ -16,14 +16,9 @@ import {
   Sparkles,
   Loader2,
   AlertCircle,
-  Database,
-  Code2,
-  Download // <--- Added Download Icon
+  Database, // <--- Added this
+  Code2
 } from 'lucide-react';
-
-// --- Constants ---
-// Automatically handles the base URL logic you requested
-const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "";
 
 // --- Utility: Time Ago Formatter ---
 const formatTimeAgo = (dateString: string) => {
@@ -53,6 +48,7 @@ interface Project {
   status: 'completed' | 'failed' | 'pending' | 'processing'; 
   createdAt: string;
   branch?: string;
+  // 👇 New Fields
   img_url?: string; 
   ai_response?: {
     models: Array<{
@@ -73,7 +69,8 @@ export default function ProjectsPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/api/generate/history`,{withCredentials: true});
+        // Ensure this matches your actual API route
+        const res = await axios.get('/api/generation/history');
         setProjects(res.data);
       } catch (err: any) {
         console.error("Failed to fetch history:", err);
@@ -186,7 +183,6 @@ export default function ProjectsPage() {
 
 function ProjectCard({ project }: { project: Project }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
   const router = useRouter();
 
   const displayName = project.name || project.title || "Untitled Project";
@@ -195,7 +191,7 @@ function ProjectCard({ project }: { project: Project }) {
 
   // Extract Models safely
   const models = project.ai_response?.models || [];
-  const displayModels = models.slice(0, 3);
+  const displayModels = models.slice(0, 3); // Show max 3 tags
   const remainingModels = models.length - 3;
 
   const toggleMenu = (e: React.MouseEvent) => {
@@ -204,70 +200,33 @@ function ProjectCard({ project }: { project: Project }) {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  // --- DOWNLOAD HANDLER ---
-  const handleDownload = async () => {
-    if (!project.ai_response) {
-      alert("No architecture data found for this project.");
-      return;
-    }
-
-    setIsDownloading(true);
-    try {
-      const targetUrl = `${baseUrl}/api/generate/download`;
-      
-      const res = await axios.post(
-        targetUrl,
-        { architecture: project.ai_response }, 
-        { responseType: 'blob',withCredentials: true } // IMPORTANT: Handle response as a file stream
-      );
-
-      // Create a blob URL and force download
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      // Use project name or fallback ID for filename
-      const safeName = (project.name || project._id).replace(/[^a-z0-9]/gi, '_');
-      link.setAttribute('download', `NodeGraph-${safeName}.zip`); 
-      document.body.appendChild(link);
-      link.click();
-      
-      // Cleanup
-      link.remove();
-      window.URL.createObjectURL(url);
-      setIsMenuOpen(false); // Close menu after download starts
-
-    } catch (err) {
-      console.error("Download failed:", err);
-      alert("Failed to download project files.");
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
   return (
     <div 
       onClick={() => { if (!isMenuOpen) router.push(`/dashboard/projects/${project._id}`) }}
       className="group relative rounded-3xl border border-border bg-card/50 backdrop-blur-md overflow-hidden hover:shadow-2xl hover:shadow-violet-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full min-h-[220px] cursor-pointer"
     >
       
-      {/* --- Visual Layer (Image) --- */}
+      {/* --- 🎨 VISUAL LAYER: Background Image (The Diagram) --- */}
       {project.img_url && (
         <div className="absolute inset-0 z-0">
-           <img 
-               src={project.img_url} 
-               alt="Diagram Preview" 
-               className="w-full h-full object-cover opacity-[0.08] dark:opacity-[0.15] grayscale group-hover:opacity-20 group-hover:grayscale-0 transition-all duration-700 transform group-hover:scale-105"
-           />
-           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
+            {/* The Image */}
+            <img 
+                src={project.img_url} 
+                alt="Diagram Preview" 
+                className="w-full h-full object-cover opacity-[0.08] dark:opacity-[0.15] grayscale group-hover:opacity-20 group-hover:grayscale-0 transition-all duration-700 transform group-hover:scale-105"
+            />
+            {/* Gradient Overlay to ensure text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
         </div>
       )}
 
-      {/* --- Content Layer --- */}
+      {/* --- CONTENT LAYER (z-10 puts it above the image) --- */}
       <div className="relative z-10 p-6 flex flex-col h-full">
         
         {/* Top Row */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start gap-4 overflow-hidden">
+            {/* Icon: Show Folder if no image, or a small preview icon if image exists */}
             <div className={`p-3 rounded-2xl border transition-colors shrink-0 ${
                 project.img_url 
                 ? 'bg-white/10 border-white/20 text-foreground backdrop-blur-md' 
@@ -295,19 +254,11 @@ function ProjectCard({ project }: { project: Project }) {
             >
               <MoreVertical className="w-5 h-5" />
             </button>
-            
-            {/* ⬇️ Pass handlers to Menu ⬇️ */}
-            {isMenuOpen && (
-              <ProjectMenu 
-                onClose={() => setIsMenuOpen(false)} 
-                onDownload={handleDownload}
-                isDownloading={isDownloading}
-              />
-            )}
+            {isMenuOpen && <ProjectMenu onClose={() => setIsMenuOpen(false)} />}
           </div>
         </div>
 
-        {/* Middle Row: Models */}
+        {/* Middle Row: AI Detected Models Pills */}
         <div className="mb-6">
             <div className="flex flex-wrap gap-2">
                 {models.length > 0 ? (
@@ -332,7 +283,7 @@ function ProjectCard({ project }: { project: Project }) {
             </div>
         </div>
 
-        {/* Bottom Row */}
+        {/* Bottom Row: Branch & Status */}
         <div className="mt-auto pt-4 border-t border-border/50 flex items-center justify-between">
            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded-md">
               <GitBranch className="w-3 h-3" />
@@ -352,8 +303,11 @@ function StatusBadge({ status }: { status: string }) {
   const styles: any = {
     completed: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
     success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    
     pending: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+    
     processing: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    
     failed: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
   };
 
@@ -375,46 +329,17 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-const ProjectMenu = ({ 
-  onClose, 
-  onDownload, 
-  isDownloading 
-}: { 
-  onClose: () => void;
-  onDownload: () => void;
-  isDownloading: boolean;
-}) => (
+const ProjectMenu = ({ onClose }: { onClose: () => void }) => (
     <>
       <div className="fixed inset-0 z-30" onClick={(e) => { e.stopPropagation(); onClose(); }} />
-      <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-popover border border-border shadow-xl z-40 animate-in fade-in zoom-in-95 duration-200 p-1">
-        
-        {/* Edit */}
+      <div className="absolute right-0 top-full mt-2 w-40 rounded-xl bg-popover border border-border shadow-xl z-40 animate-in fade-in zoom-in-95 duration-200 p-1">
         <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors">
           <Edit2 className="w-3.5 h-3.5" /> Edit
         </button>
-
-        {/* ⬇️ NEW Download Button ⬇️ */}
-        <button 
-          onClick={(e) => { e.stopPropagation(); onDownload(); }}
-          disabled={isDownloading}
-          className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors disabled:opacity-50"
-        >
-          {isDownloading ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-500" />
-          ) : (
-            <Download className="w-3.5 h-3.5" />
-          )}
-          {isDownloading ? "Zipping..." : "Download Code"}
-        </button>
-
-        {/* Deploy */}
         <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors">
           <Rocket className="w-3.5 h-3.5" /> Deploy
         </button>
-
         <div className="h-px bg-border my-1" />
-        
-        {/* Delete */}
         <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors">
           <Trash2 className="w-3.5 h-3.5" /> Delete
         </button>
