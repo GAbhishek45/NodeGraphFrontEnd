@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+// ⚠️ CRITICAL: Must import from 'next/navigation' in App Router, NOT 'next/router'
+import { useRouter } from 'next/navigation'; 
 import { useAuth } from '@/contexts/auth-context';
-// import Sidebar from '@/components/dashboard/sidebar'; // Uncomment if needed
 import DiagramUploadZone from '@/components/dashboard/diagram-upload-zone';
 import { 
   Terminal, 
@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   BrainCircuit
 } from 'lucide-react';
-// import DashboardNavbar from '@/components/dashboard/dashboardNavbar'; // Uncomment if needed
 
 // --- Constants ---
 const MAX_CREDITS = 3; 
@@ -35,20 +34,24 @@ const DEV_TIPS = [
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, isLoading } = useAuth(); // Assuming useAuth provides isLoading
   const [mounted, setMounted] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [currentTip, setCurrentTip] = useState('');
 
-  // Auth Check & Mount
+  // 1. Mount Check (Prevents Hydration Mismatch)
   useEffect(() => {
     setMounted(true);
-    if (!user && mounted) {
-      router.push('/login');
-    }
-  }, [user, mounted, router]);
+  }, []);
 
-  // Terminal Simulation Effect
+  // 2. Auth Protection Effect
+  useEffect(() => {
+    if (mounted && !isLoading && !user) {
+       router.push('/login');
+    }
+  }, [user, isLoading, mounted, router]);
+
+  // 3. Terminal Simulation Effect
   useEffect(() => {
     if (!mounted) return;
     
@@ -63,12 +66,8 @@ export default function DashboardPage() {
     setCurrentTip(DEV_TIPS[Math.floor(Math.random() * DEV_TIPS.length)]);
   }, [mounted]);
 
-  const handleLogout = () => {
-    logout();
-    router.push('/');
-  };
-
-  if (!mounted || !user) {
+  // --- Loading State (Before Client Mount or Auth Check) ---
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -79,9 +78,11 @@ export default function DashboardPage() {
     );
   }
 
+  // If we are mounted and not loading, but no user, return null (effect will redirect)
+  if (!user) return null;
+
   // --- 1. DYNAMIC CREDIT CALCULATION ---
   const currentCredits = user?.credits || 0;
-  // Calculate percentage (clamp between 0 and 100)
   const creditPercentage = Math.min(100, Math.max(0, (currentCredits / MAX_CREDITS) * 100));
 
   return (
